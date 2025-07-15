@@ -4,18 +4,10 @@ const { Pool } = require('pg');
 const cors = require('cors');
 const path = require('path');
 const fs = require('fs');
+const {query} = require("./config/db-connection");
 
 const app = express();
 const port = 3001;
-
-// Database connection
-const pool = new Pool({
-    user: 'postgres',
-    host: 'localhost',
-    database: 'speech_therapy',
-    password: 'postgres',
-    port: 5432,
-});
 
 // Middleware
 app.use(cors());
@@ -44,7 +36,7 @@ const upload = multer({ storage: storage });
 // Get all bundles
 app.get('/api/bundles', async (req, res) => {
     try {
-        const result = await pool.query('SELECT * FROM speech_therapy.exercise_bundle ORDER BY id');
+        const result = await query('SELECT * FROM speech_therapy.exercise_bundle ORDER BY id');
         res.json(result.rows);
     } catch (err) {
         console.error(err);
