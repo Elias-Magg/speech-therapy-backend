@@ -2,6 +2,7 @@ const exerciseCrud = require('../../src/crud/ExerciseCrud');
 const exerciseBundleCrud = require('../../src/crud/ExerciseBundleCrud');
 const pool = require("../../src/config/db-connection");
 const Exercise = require("../../src/models/Exercise");
+const ExerciseBundle = require("../../src/models/ExerciseBundle");
 
 
 describe('Exercise CRUD operations', () => {
@@ -10,8 +11,8 @@ describe('Exercise CRUD operations', () => {
 
     beforeAll(async () => {
         // Create a test bundle to associate exercises with
-        const bundle = await exerciseBundleCrud.createExerciseBundle('Test Bundle for CRUD',false);
-        const bundle2 = await exerciseBundleCrud.createExerciseBundle('Test Bundle for CRUD 2',false);
+        const bundle = await exerciseBundleCrud.createExerciseBundle(new ExerciseBundle(null,'Test Bundle for CRUD',[], false));
+        const bundle2 = await exerciseBundleCrud.createExerciseBundle(new ExerciseBundle(null,'Test Bundle for CRUD 2',[], false));
         testBundleId = bundle.id;
         testBundleId2 = bundle2.id;
     });
@@ -248,7 +249,7 @@ describe('Exercise CRUD operations', () => {
         const foundExercises = await exerciseCrud.findExercisesByBundleId(testBundleId);
         expect(foundExercises).toBeDefined();
 
-        for (const exercise of foundExercises.rows) {
+        for (const exercise of foundExercises) {
             expect(exercise).toBeDefined();
             expect(exercise.id).toBeDefined();
             expect(exercise.bundle_id).toBe(testBundleId);
@@ -259,7 +260,7 @@ describe('Exercise CRUD operations', () => {
             expect(exercise.picture).toStrictEqual(Buffer.from('image-data'));
         }
 
-        for (const exercise of foundExercises.rows) {
+        for (const exercise of foundExercises) {
             await exerciseCrud.deleteExercise(exercise.id);
         }
 

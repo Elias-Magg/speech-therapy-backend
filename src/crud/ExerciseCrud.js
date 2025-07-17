@@ -2,7 +2,7 @@ const Exercise = require('../models/Exercise');
 const { v4: uuidv4 } = require('uuid');
 const pool = require("../config/db-connection");
 
-async function findExerciseById(id) {
+async function getExerciseById(id) {
     if (!id) {
         throw new Error("Exercise 'id' is required.");
     }
@@ -22,7 +22,7 @@ async function findExerciseById(id) {
     return result.rows[0];
 }
 
-async function findExercisesByBundleId(id) {
+async function getExercisesByBundleId(id) {
     if (!id) {
         throw new Error("Exercise bundle 'id' is required.");
     }
@@ -30,7 +30,7 @@ async function findExercisesByBundleId(id) {
     const query = `
     SELECT id, bundle_id, step, title, description, audio, picture, video_file_path
     FROM speech_therapy.exercise
-    WHERE bundle_id = $1;
+    WHERE bundle_id = $1 ORDER BY step;
   `;
 
     const result = await pool.query(query, [id]);
@@ -39,7 +39,7 @@ async function findExercisesByBundleId(id) {
         return null; // or throw new Error("Exercise not found");
     }
 
-    return result;
+    return result.rows;
 }
 
 
@@ -73,12 +73,10 @@ async function updateExercise(exercise) {
     const setClauses = entries.map(([key], index) => `${key} = $${index + 1}`);
     const values = entries.map(([, value]) => value);
 
-    const query = `
-    UPDATE speech_therapy.exercise
-    SET ${setClauses.join(', ')}
-    WHERE id = $${values.length + 1}
-    RETURNING *;
-  `;
+    const query = `UPDATE speech_therapy.exercise
+        SET ${setClauses.join(', ')}
+        WHERE id = $${values.length + 1}
+        RETURNING *;`;
 
     values.push(exercise.id);
 
@@ -93,8 +91,8 @@ async function deleteExercise(id) {
 
 
 module.exports = {
-    findExerciseById,
-    findExercisesByBundleId,
+    findExerciseById: getExerciseById,
+    findExercisesByBundleId: getExercisesByBundleId,
     createExercise,
     updateExercise,
     deleteExercise

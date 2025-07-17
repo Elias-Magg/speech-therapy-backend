@@ -3,10 +3,10 @@ class ExerciseBundle {
     title;
     exercises;  //list of exercises
     global;
-    constructor(id, title, exercise, global) {
+    constructor(id, title, exercises, global) {
         this.id = id;
         this.title = title;
-        this.exercises = exercise;
+        this.exercises = exercises;
         this.global = global;
     }
 }
