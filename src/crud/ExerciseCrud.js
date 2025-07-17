@@ -2,13 +2,6 @@ const Exercise = require('../models/Exercise');
 const { v4: uuidv4 } = require('uuid');
 const pool = require("../config/db-connection");
 
-/**
- * what kind of crud operations do we need ?
- *      1. Create
- *      2. Update
- *      3. Delete
- */
-
 async function findExerciseById(id) {
     if (!id) {
         throw new Error("Exercise 'id' is required.");
@@ -28,6 +21,27 @@ async function findExerciseById(id) {
 
     return result.rows[0];
 }
+
+async function findExercisesByBundleId(id) {
+    if (!id) {
+        throw new Error("Exercise bundle 'id' is required.");
+    }
+
+    const query = `
+    SELECT id, bundle_id, step, title, description, audio, picture, video_file_path
+    FROM speech_therapy.exercise
+    WHERE bundle_id = $1;
+  `;
+
+    const result = await pool.query(query, [id]);
+
+    if (result.rows.length === 0) {
+        return null; // or throw new Error("Exercise not found");
+    }
+
+    return result;
+}
+
 
 /**
  * @returns {Promise<Exercise>}
@@ -80,6 +94,7 @@ async function deleteExercise(id) {
 
 module.exports = {
     findExerciseById,
+    findExercisesByBundleId,
     createExercise,
     updateExercise,
     deleteExercise

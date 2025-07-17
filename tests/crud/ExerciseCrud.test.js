@@ -215,5 +215,53 @@ describe('Exercise CRUD operations', () => {
         expect(foundExercise.video_file_path).toBe(`uploads/videos/${testBundleId}/test-video.mp4`);
         expect(foundExercise.audio).toStrictEqual(Buffer.from('audio-data'));
         expect(foundExercise.picture).toStrictEqual(Buffer.from('image-data'));
+
+        await exerciseCrud.deleteExercise(testExerciseId);
+    });
+
+    test('Find exercises by bundle id', async () => {
+
+        await exerciseCrud.createExercise(new Exercise(
+                null,
+                testBundleId,
+                1,
+                'Test Exercise',
+                'This is a test',
+                Buffer.from('audio-data'),
+                Buffer.from('image-data'),
+                `uploads/videos/${testBundleId}/test-video.mp4`
+            )
+        );
+
+        await exerciseCrud.createExercise(new Exercise(
+                null,
+                testBundleId,
+                2,
+                'Test Exercise',
+                'This is a test',
+                Buffer.from('audio-data'),
+                Buffer.from('image-data'),
+                `uploads/videos/${testBundleId}/test-video.mp4`
+            )
+        );
+
+        const foundExercises = await exerciseCrud.findExercisesByBundleId(testBundleId);
+        expect(foundExercises).toBeDefined();
+
+        for (const exercise of foundExercises.rows) {
+            expect(exercise).toBeDefined();
+            expect(exercise.id).toBeDefined();
+            expect(exercise.bundle_id).toBe(testBundleId);
+            expect(exercise.title).toBe('Test Exercise');
+            expect(exercise.description).toBe('This is a test');
+            expect(exercise.video_file_path).toBe(`uploads/videos/${testBundleId}/test-video.mp4`);
+            expect(exercise.audio).toStrictEqual(Buffer.from('audio-data'));
+            expect(exercise.picture).toStrictEqual(Buffer.from('image-data'));
+        }
+
+        for (const exercise of foundExercises.rows) {
+            await exerciseCrud.deleteExercise(exercise.id);
+        }
+
     });
 });
