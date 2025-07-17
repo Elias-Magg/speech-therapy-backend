@@ -2,25 +2,75 @@ const Exercise = require('../models/Exercise');
 const { v4: uuidv4 } = require('uuid');
 const pool = require("../config/db-connection");
 
-async function createExercise(bundleId, step, title, description, audio, picture, video_file_path) {
-    const id = uuidv4();
-    await pool.query(`
-    INSERT INTO speech_therapy.exercise 
-    (id, bundle_id, step, title, description, audio, picture, video_file_path) 
-    VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
-  `, [id, bundleId, step, title, description, audio, picture, video_file_path]);
-    return new Exercise(id, step, title, description, audio, picture, video_file_path);
+/**
+ * what kind of crud operations do we need ?
+ *      1. Create
+ *      2. Update
+ *      3. Delete
+ */
+
+async function findExerciseById(id) {
+    if (!id) {
+        throw new Error("Exercise 'id' is required.");
+    }
+
+    const query = `
+    SELECT id, bundle_id, step, title, description, audio, picture, video_file_path
+    FROM speech_therapy.exercise
+    WHERE id = $1;
+  `;
+
+    const result = await pool.query(query, [id]);
+
+    if (result.rows.length === 0) {
+        return null; // or throw new Error("Exercise not found");
+    }
+
+    return result.rows[0];
 }
 
-async function updateExercise(id, fields) {
-    const keys = Object.keys(fields);
-    if (keys.length === 0) return;
+/**
+ * @returns {Promise<Exercise>}
+ * @param exercise is an Exercise object
+ */
+async function createExercise(exercise) {
+    const id = uuidv4();
+    await pool.query(`INSERT INTO speech_therapy.exercise 
+    (id, bundle_id, step, title, description, audio, picture, video_file_path) 
+    VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`,
+        [id, exercise.bundle_id, exercise.step, exercise.title, exercise.description, exercise.audio, exercise.picture, exercise.video_file_path]);
 
-    const setClause = keys.map((key, idx) => `${key} = $${idx + 1}`).join(', ');
-    await pool.query(`UPDATE speech_therapy.exercise SET ${setClause} WHERE id = $${keys.length + 1}`, [
-        ...Object.values(fields),
-        id,
-    ]);
+    exercise.id = id;
+    return exercise;
+}
+
+async function updateExercise(exercise) {
+    if (!exercise.id) {
+        throw new Error("Exercise 'id' is required for update.");
+    }
+    // Filter out null or undefined fields
+    const entries = Object.entries(exercise)
+        .filter(([value]) => value !== null && value !== undefined);
+
+    if (entries.length === 0) {
+        throw new Error("No valid fields provided for update.");
+    }
+
+    const setClauses = entries.map(([key], index) => `${key} = $${index + 1}`);
+    const values = entries.map(([, value]) => value);
+
+    const query = `
+    UPDATE speech_therapy.exercise
+    SET ${setClauses.join(', ')}
+    WHERE id = $${values.length + 1}
+    RETURNING *;
+  `;
+
+    values.push(exercise.id);
+
+    const result = await pool.query(query, values);
+    return result.rows[0];
+
 }
 
 async function deleteExercise(id) {
@@ -29,6 +79,7 @@ async function deleteExercise(id) {
 
 
 module.exports = {
+    findExerciseById,
     createExercise,
     updateExercise,
     deleteExercise

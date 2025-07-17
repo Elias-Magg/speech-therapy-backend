@@ -3,10 +3,10 @@ const ExerciseBundle = require('../models/ExerciseBundle');
 const { v4: uuidv4 } = require('uuid');
 const pool = require("../config/db-connection");
 
-async function createExerciseBundle(title) {
+async function createExerciseBundle(title,global) {
     const id = uuidv4();
-    await pool.query('INSERT INTO speech_therapy.exercise_bundle (id, title) VALUES ($1, $2)', [id, title]);
-    return new ExerciseBundle(id, title, []);
+    await pool.query('INSERT INTO speech_therapy.exercise_bundle (id, title, global) VALUES ($1, $2, $3)', [id, title, global]);
+    return new ExerciseBundle(id, title, [], global);
 }
 
 async function addBundleToUser(userId, bundleId) {
