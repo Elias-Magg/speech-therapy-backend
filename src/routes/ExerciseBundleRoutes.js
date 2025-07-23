@@ -20,7 +20,7 @@ router.post('/bundles', async (req, res) => {
 });
 
 // Add user to bundle
-router.post('/users/:userId/bundles/:bundleId', async (req, res) => {
+router.post('/bundles/:bundleId/users/:userId', async (req, res) => {
     try {
         await userExerciseBundleAssociation.createUserExerciseBundleAssociation(req.params.userId, req.params.bundleId);
         res.json({ message: 'Bundle assigned to user' });
@@ -35,6 +35,17 @@ router.get('/bundles/:id', async (req, res) => {
         const bundle = await exerciseBundleCrud.getBundleById(req.params.id, true);
         if (!bundle) return res.status(404).json({ error: 'Bundle not found' });
         res.json(bundle);
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+// Get bundle ids with user id
+router.get('/bundles/users/:userId', async (req, res) => {
+    try {
+        const bundleIds = await exerciseBundleCrud.getBundlesByUserId(req.params.user_id);
+        if (!bundleIds) return res.status(404).json({ error: 'No bundle not found' });
+        res.json(bundleIds);
     } catch (err) {
         res.status(500).json({ error: err.message });
     }
