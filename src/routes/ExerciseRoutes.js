@@ -1,6 +1,10 @@
 const express = require('express');
 const bodyParser = require('body-parser');
 const exerciseCrud = require('../crud/ExerciseCrud');
+const path = require('path');
+const fs = require('fs');
+const {upload} = require("../controllers/FileUploadController");
+const Exercise = require("../models/Exercise");
 
 const router = express.Router();
 
@@ -9,17 +13,15 @@ router.use(bodyParser.json());
 // Create exercise
 router.post('/exercises', async (req, res) => {
     try {
-        const { bundleId, step, title, description, audio, picture, video_file_path } = req.body;
-        const exercise = await exerciseCrud.createExercise(bundleId, step, title, description, audio, picture, video_file_path);
+        const { bundleId, step, title, description} = req.body;
+        const exercise = await exerciseCrud.createExercise(new Exercise(null, bundleId, parseInt(step), title, description, null, null, null));
         res.status(201).json(exercise);
     } catch (err) {
         res.status(500).json({ error: err.message });
     }
 });
 
-const path = require('path');
-const fs = require('fs');
-const {upload} = require("../controllers/FileUploadController");
+
 
 router.post('/exercises', upload.fields([
     { name: 'video', maxCount: 1 },
@@ -46,7 +48,8 @@ router.post('/exercises', upload.fields([
                 : null;
         }
 
-        const exercise = await exerciseCrud.createExercise(
+        const exercise = await exerciseCrud.createExercise(new Exercise(
+            null,
             bundleId,
             parseInt(step),
             title,
@@ -54,6 +57,7 @@ router.post('/exercises', upload.fields([
             audioBuffer,
             pictureBuffer,
             videoFilePath
+            )
         );
 
         res.status(201).json(exercise);
@@ -88,8 +92,15 @@ router.put('/exercises/:id', upload.fields([
             updates.step = parseInt(updates.step);
         }
 
-        await exerciseCrud.updateExercise(req.params.id, updates);
-        res.json({ message: 'Exercise updated' });
+        const exercise = await exerciseCrud.updateExercise(new Exercise(req.params.id,
+            updates.bundle_id,
+            updates.step,
+            updates.title,
+            updates.description,
+            updates.audio,
+            updates.picture,
+            updates.video_file_path));
+        res.status(201).json(exercise)
     } catch (err) {
         res.status(500).json({ error: err.message });
     }
