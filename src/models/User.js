@@ -1,15 +1,17 @@
 class User {
     id;
     type;
+    email;
     name;
     surname;
-    exerciseBundles;
-    constructor(id,type, name, surname, exerciseBundles) {
+    clinician_id;
+    constructor(id, type, email, name, surname, clinician_id) {
         this.id = id;
         this.type = type;
+        this.email = email;
         this.name = name;
         this.surname = surname;
-        this.exerciseBundles = exerciseBundles;
+        this.clinician_id = clinician_id;
     }
 }
 module.exports = User;

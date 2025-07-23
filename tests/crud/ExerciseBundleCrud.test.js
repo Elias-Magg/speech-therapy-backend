@@ -13,6 +13,7 @@ describe('Exercise Bundle CRUD operations', () => {
     });
 
     afterAll(async () => {
+        await pool.end();
     });
 
     test('Create exercise bundle', async () => {

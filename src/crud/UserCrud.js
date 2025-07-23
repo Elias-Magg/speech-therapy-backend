@@ -3,53 +3,66 @@ const Exercise = require('../models/Exercise');
 const ExerciseBundle = require('../models/ExerciseBundle');
 const { v4: uuidv4 } = require('uuid');
 const pool = require("../config/db-connection");
+const exerciseBundleCrud = require("./ExerciseBundleCrud");
+const userData = require("../models/User");
 
-// ========== USERS ==========
 
-async function createUser(type, name, surname) {
+async function createUser(user) {
     const id = uuidv4();
     await pool.query(
-        'INSERT INTO speech_therapy.user (id, type, name, surname) VALUES ($1, $2, $3, $4)',
-        [id, type, name, surname]
+        'INSERT INTO speech_therapy.user (id, type, email, name, surname) VALUES ($1, $2, $3, $4, $5)',
+        [id, user.type, user.email, user.name, user.surname]
     );
-    return new User(id, type, name, surname, []);
+    return new User(id, user.type, user.email, user.name, user.surname, null);
+}
+
+async function getUserByEmail(email) {
+    const userRes = await pool.query('SELECT * FROM speech_therapy.user WHERE email = $1', [email]);
+    if (userRes.rows.length === 0) return null;
+    let userData = userRes.rows[0];
+
+    return new User(userData.id, userData.type, userData.email, userData.name, userData.surname, userData.clinician_id);
 }
 
 async function getUserById(id) {
     const userRes = await pool.query('SELECT * FROM speech_therapy.user WHERE id = $1', [id]);
     if (userRes.rows.length === 0) return null;
+    let userData = userRes.rows[0];
 
-    const userData = userRes.rows[0];
-
-    const bundlesRes = await pool.query(`
-    SELECT eb.* FROM speech_therapy.exercise_bundle eb
-    JOIN speech_therapy.user_bundle ub ON ub.bundle_id = eb.id
-    WHERE ub.user_id = $1
-  `, [id]);
-
-    const bundles = await Promise.all(bundlesRes.rows.map(async bundle => {
-        const exercisesRes = await pool.query(
-            'SELECT * FROM speech_therapy.exercise WHERE bundle_id = $1 ORDER BY step',
-            [bundle.id]
-        );
-        const exercises = exercisesRes.rows.map(e => new Exercise(
-            e.id, e.step, e.title, e.description, e.audio, e.picture, e.video_file_path
-        ));
-        return new ExerciseBundle(bundle.id, bundle.title, exercises);
-    }));
-
-    return new User(userData.id, userData.type, userData.name, userData.surname, bundles);
+    return new User(userData.id, userData.type, userData.email, userData.name, userData.surname, userData.clinician_id);
 }
 
-async function updateUser(id, fields) {
-    const keys = Object.keys(fields);
-    if (keys.length === 0) return;
+async function getUsersByClinicianId(clinician_id) {
+    const userRes = await pool.query('SELECT * FROM speech_therapy.user WHERE clinician_id = $1', [clinician_id]);
+    if (userRes.rows.length === 0) return null;
+    let users = userRes.rows.map(item => new User(item.id, item.type, item.email, item.name, item.surname, item.clinician_id));
 
-    const values = keys.map((key, idx) => `${key} = $${idx + 1}`).join(', ');
-    await pool.query(`UPDATE speech_therapy.user SET ${values} WHERE id = $${keys.length + 1}`, [
-        ...Object.values(fields),
-        id,
-    ]);
+    return users;
+}
+
+async function updateUser(user) {
+    const entries = Object.entries(user)
+        .filter(([key,value]) => key !== 'exerciseBundles' && value !== null && value !== undefined);
+
+    let updatedEntry;
+
+    if (entries.length !== 0) {
+
+        const setClauses = entries.map(([key], index) => `${key} = $${index + 1}`);
+        const values = entries.map(([, value]) => value);
+
+        const query = `UPDATE speech_therapy.user
+            SET ${setClauses.join(', ')}
+            WHERE id = $${values.length + 1}
+            RETURNING *;`;
+
+        values.push(user.id);
+
+        updatedEntry = await pool.query(query, values);
+
+    }
+
+    return updatedEntry.rows[0];
 }
 
 async function deleteUser(id) {
@@ -60,5 +73,7 @@ module.exports = {
     createUser,
     getUserById,
     updateUser,
-    deleteUser
+    deleteUser,
+    getUserByEmail,
+    getUsersByClinicianId
 };

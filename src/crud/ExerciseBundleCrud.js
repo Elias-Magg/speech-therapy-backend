@@ -3,7 +3,6 @@ const ExerciseBundle = require('../models/ExerciseBundle');
 const exerciseCrud = require('../crud/ExerciseCrud');
 const { v4: uuidv4 } = require('uuid');
 const pool = require("../config/db-connection");
-const exerciseBundle = require("../models/User");
 
 async function createExerciseBundle(exerciseBundle) {
     const id = uuidv4();
@@ -32,12 +31,12 @@ async function getBundleById(id, fetchExercises) {
     return new ExerciseBundle(bundle.id, bundle.title, exercises, bundle.global);
 }
 
-async function getBundleByUserId(id, fetchExercises) {
+async function getBundlesByUserId(id) {
     if (!id) {
         throw new Error("User 'id' is required.");
     }
 
-    const bundleRes = await pool.query('SELECT * FROM speech_therapy.user_bundle WHERE user_id = $1', [id]);
+    const bundleRes = await pool.query('SELECT bundle_id FROM speech_therapy.user_bundle WHERE user_id = $1', [id]);
     if (bundleRes.rows.length === 0) return null;
 
     return new ExerciseBundle(bundleRes.rows);
@@ -81,7 +80,7 @@ async function deleteExerciseBundle(id) {
 module.exports = {
     createExerciseBundle,
     getBundleById,
-    getBundleByUserId,
+    getBundlesByUserId,
     updateExerciseBundle,
     deleteExerciseBundle,
 };
