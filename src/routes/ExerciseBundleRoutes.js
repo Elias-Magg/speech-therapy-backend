@@ -40,12 +40,13 @@ router.get('/bundles/:id', async (req, res) => {
     }
 });
 
-// Get bundle ids with user id
+// Get bundles with user id
+// TODO : get whole bundles (without exercises)
 router.get('/bundles/users/:userId', async (req, res) => {
     try {
-        const bundleIds = await exerciseBundleCrud.getBundlesByUserId(req.params.user_id);
-        if (!bundleIds) return res.status(404).json({ error: 'No bundle not found' });
-        res.json(bundleIds);
+        const bundles = await exerciseBundleCrud.getBundlesByUserId(req.params.user_id);
+        if (!bundles) return res.status(404).json({ error: 'No bundle not found' });
+        res.json(bundles);
     } catch (err) {
         res.status(500).json({ error: err.message });
     }

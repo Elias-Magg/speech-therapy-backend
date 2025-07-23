@@ -31,15 +31,25 @@ async function getBundleById(id, fetchExercises) {
     return new ExerciseBundle(bundle.id, bundle.title, exercises, bundle.global);
 }
 
-async function getBundlesByUserId(id) {
-    if (!id) {
-        throw new Error("User 'id' is required.");
+async function getBundlesByUserId(user_id) {
+    if (!user_id) {
+        throw new Error("user_id is required.");
     }
 
-    const bundleRes = await pool.query('SELECT bundle_id FROM speech_therapy.user_bundle WHERE user_id = $1', [id]);
-    if (bundleRes.rows.length === 0) return null;
+    const query = `
+    SELECT b.id, b.title, b.global
+    FROM speech_therapy.exercise_bundle b
+    INNER JOIN speech_therapy.user_bundle ub ON ub.bundle_id = b.id
+    WHERE ub.user_id = $1;
+  `;
 
-    return new ExerciseBundle(bundleRes.rows);
+    const result = await pool.query(query, [user_id]);
+
+    if (result.rows.length === 0) return null;
+
+    let exerciseBundles = result.rows.map(row => (new ExerciseBundle(row.id, row.title, null, row.global)));
+
+    return exerciseBundles;
 }
 
 async function updateExerciseBundle(exerciseBundle) {
