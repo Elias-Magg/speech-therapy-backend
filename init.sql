@@ -19,10 +19,13 @@ CREATE TABLE IF NOT EXISTS speech_therapy.exercise (
 );
 
 CREATE TABLE IF NOT EXISTS speech_therapy.user (
-	id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-	type TEXT NOT NULL CHECK (type IN ('user', 'clinician', 'admin')),
-	name TEXT NOT NULL,
-	surname TEXT NOT NULL
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    type TEXT NOT NULL CHECK (type IN ('user', 'clinician', 'admin')),
+    email TEXT not null unique,
+    name TEXT NOT NULL,
+    surname TEXT NOT null,
+    clinician_id UUID,
+    FOREIGN KEY (clinician_id) REFERENCES speech_therapy.user(id)
 );
 
 CREATE TABLE IF NOT EXISTS speech_therapy.user_bundle (
