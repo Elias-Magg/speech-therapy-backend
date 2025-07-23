@@ -1,6 +1,8 @@
 const express = require('express');
 const bodyParser = require('body-parser');
 const exerciseBundleCrud = require('../crud/ExerciseBundleCrud');
+const ExerciseBundle = require("../models/ExerciseBundle");
+const userExerciseBundleAssociation = require("../crud/UserExerciseBundleAssociationCrud");
 
 const router = express.Router();
 
@@ -9,8 +11,7 @@ router.use(bodyParser.json());
 // Create bundle
 router.post('/bundles', async (req, res) => {
     try {
-        const { title } = req.body;
-        const bundle = await exerciseBundleCrud.createExerciseBundle(title);
+        const bundle = await exerciseBundleCrud.createExerciseBundle(new ExerciseBundle(null,req.body.title, req.body.global));
         res.status(201).json(bundle);
     } catch (err) {
         res.status(500).json({ error: err.message });
@@ -20,7 +21,7 @@ router.post('/bundles', async (req, res) => {
 // Add user to bundle
 router.post('/users/:userId/bundles/:bundleId', async (req, res) => {
     try {
-        await exerciseBundleCrud.addBundleToUser(req.params.userId, req.params.bundleId);
+        await userExerciseBundleAssociation.createUserExerciseBundleAssociation(req.params.userId, req.params.bundleId);
         res.json({ message: 'Bundle assigned to user' });
     } catch (err) {
         res.status(500).json({ error: err.message });
@@ -30,7 +31,7 @@ router.post('/users/:userId/bundles/:bundleId', async (req, res) => {
 // Get bundle with exercises
 router.get('/bundles/:id', async (req, res) => {
     try {
-        const bundle = await exerciseBundleCrud.getBundleById(req.params.id);
+        const bundle = await exerciseBundleCrud.getBundleById(req.params.id, true);
         if (!bundle) return res.status(404).json({ error: 'Bundle not found' });
         res.json(bundle);
     } catch (err) {
@@ -41,8 +42,8 @@ router.get('/bundles/:id', async (req, res) => {
 // Update bundle
 router.put('/bundles/:id', async (req, res) => {
     try {
-        const { title } = req.body;
-        await exerciseBundleCrud.updateExerciseBundle(req.params.id, title);
+        let updatedBundle = new ExerciseBundle(req.params.id, req.body.title, req.body.global);
+        await exerciseBundleCrud.updateExerciseBundle(updatedBundle);
         res.json({ message: 'Bundle updated' });
     } catch (err) {
         res.status(500).json({ error: err.message });
