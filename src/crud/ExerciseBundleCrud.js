@@ -21,7 +21,7 @@ async function getBundleById(id, fetchExercises) {
 
     let exercises = null;
     if (fetchExercises) {
-        const exercisesRes = await exerciseCrud.findExercisesByBundleId(id);
+        const exercisesRes = await exerciseCrud.getExercisesByBundleId(id);
         exercises = exercisesRes.map(e => new Exercise(
             e.id, e.bundle_id, e.step, e.title, e.description, e.audio, e.picture, e.video_file_path
         ));

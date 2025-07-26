@@ -91,8 +91,8 @@ async function deleteExercise(id) {
 
 
 module.exports = {
-    findExerciseById: getExerciseById,
-    findExercisesByBundleId: getExercisesByBundleId,
+    getExerciseById,
+    getExercisesByBundleId,
     createExercise,
     updateExercise,
     deleteExercise

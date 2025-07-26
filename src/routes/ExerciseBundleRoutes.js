@@ -12,7 +12,7 @@ router.use(bodyParser.json());
 router.post('/bundles', async (req, res) => {
     try {
         const { title, global } = req.body;
-        const bundle = await exerciseBundleCrud.createExerciseBundle(new ExerciseBundle(null,title, global));
+        const bundle = await exerciseBundleCrud.createExerciseBundle(new ExerciseBundle(null,title, null, global));
         res.status(201).json(bundle);
     } catch (err) {
         res.status(500).json({ error: err.message });
@@ -56,7 +56,7 @@ router.get('/bundles/users/:userId', async (req, res) => {
 router.put('/bundles/:id', async (req, res) => {
     try {
         const { title, global } = req.body;
-        let updatedBundle = new ExerciseBundle(req.params.id, title, global);
+        let updatedBundle = new ExerciseBundle(req.params.id, title,null, global);
         await exerciseBundleCrud.updateExerciseBundle(updatedBundle);
         res.json({ message: 'Bundle updated' });
     } catch (err) {

@@ -175,7 +175,7 @@ describe('Exercise CRUD operations', () => {
 
         await exerciseCrud.deleteExercise(testExerciseId);
 
-        const deletedExercise = await exerciseCrud.findExerciseById(testExerciseId);
+        const deletedExercise = await exerciseCrud.getExerciseById(testExerciseId);
 
         expect(deletedExercise).toBeNull();
     });
@@ -205,7 +205,7 @@ describe('Exercise CRUD operations', () => {
         expect(exercise.audio).toStrictEqual(Buffer.from('audio-data'));
         expect(exercise.picture).toStrictEqual(Buffer.from('image-data'));
 
-        const foundExercise = await exerciseCrud.findExerciseById(testExerciseId);
+        const foundExercise = await exerciseCrud.getExerciseById(testExerciseId);
 
         expect(foundExercise).toBeDefined();
         expect(foundExercise.id).toBeDefined();
@@ -246,7 +246,7 @@ describe('Exercise CRUD operations', () => {
             )
         );
 
-        const foundExercises = await exerciseCrud.findExercisesByBundleId(testBundleId);
+        const foundExercises = await exerciseCrud.getExercisesByBundleId(testBundleId);
         expect(foundExercises).toBeDefined();
 
         for (const exercise of foundExercises) {

@@ -81,8 +81,8 @@ describe('Exercise Bundle CRUD operations', () => {
 
 
         await exerciseBundleCrud.deleteExerciseBundle(testBundleId);
-        await exerciseCrud.findExerciseById(exercise1.id);
-        await exerciseCrud.findExerciseById(exercise2.id);
+        await exerciseCrud.getExerciseById(exercise1.id);
+        await exerciseCrud.getExerciseById(exercise2.id);
     });
 
     test('Update few field', async () => {
@@ -146,8 +146,8 @@ describe('Exercise Bundle CRUD operations', () => {
 
         expect(deletedExerciseBundle).toBeNull();
 
-        let deletedExercise1 = await exerciseCrud.findExerciseById(exercise1.id);
-        let deletedExercise2 = await exerciseCrud.findExerciseById(exercise2.id);
+        let deletedExercise1 = await exerciseCrud.getExerciseById(exercise1.id);
+        let deletedExercise2 = await exerciseCrud.getExerciseById(exercise2.id);
         expect(deletedExercise1).toBeNull();
         expect(deletedExercise2).toBeNull();
     });
@@ -186,8 +186,8 @@ describe('Exercise Bundle CRUD operations', () => {
 
         await exerciseBundleCrud.deleteExerciseBundle(testBundleId);
 
-        let deletedExercise1 = await exerciseCrud.findExerciseById(exercise1.id);
-        let deletedExercise2 = await exerciseCrud.findExerciseById(exercise2.id);
+        let deletedExercise1 = await exerciseCrud.getExerciseById(exercise1.id);
+        let deletedExercise2 = await exerciseCrud.getExerciseById(exercise2.id);
         expect(deletedExercise1).toBeNull();
         expect(deletedExercise2).toBeNull();
     });
@@ -226,8 +226,8 @@ describe('Exercise Bundle CRUD operations', () => {
 
         await exerciseBundleCrud.deleteExerciseBundle(testBundleId);
 
-        let deletedExercise1 = await exerciseCrud.findExerciseById(exercise1.id);
-        let deletedExercise2 = await exerciseCrud.findExerciseById(exercise2.id);
+        let deletedExercise1 = await exerciseCrud.getExerciseById(exercise1.id);
+        let deletedExercise2 = await exerciseCrud.getExerciseById(exercise2.id);
         expect(deletedExercise1).toBeNull();
         expect(deletedExercise2).toBeNull();
     });
@@ -260,8 +260,8 @@ describe('Exercise Bundle CRUD operations', () => {
 
         await exerciseBundleCrud.deleteExerciseBundle(testBundleId);
 
-        let deletedExercise1 = await exerciseCrud.findExerciseById(exercise1.id);
-        let deletedExercise2 = await exerciseCrud.findExerciseById(exercise2.id);
+        let deletedExercise1 = await exerciseCrud.getExerciseById(exercise1.id);
+        let deletedExercise2 = await exerciseCrud.getExerciseById(exercise2.id);
         expect(deletedExercise1).toBeNull();
         expect(deletedExercise2).toBeNull();
     });

@@ -24,6 +24,8 @@ const userRoutes = require('./routes/UserRoutes');
 const exerciseRoutes = require('./routes/ExerciseRoutes');
 const exerciseBundleRoutes = require('./routes/ExerciseBundleRoutes');
 
+// Middleware for parsing JSON
+app.use(express.json());
 
 app.use('/api', userRoutes);
 app.use('/api', exerciseRoutes);
