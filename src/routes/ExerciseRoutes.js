@@ -39,7 +39,7 @@ const upload = multer({
     fileFilter: (req, file, cb) => {
         // Define allowed file types
         const allowedTypes = {
-            audio: ['audio/mpeg', 'audio/wav', 'audio/mp3', 'audio/ogg'],
+            audio: ['audio/mpeg', 'audio/wav', 'audio/mp3', 'audio/ogg','audio/mp4','audio/x-m4a'],
             picture: ['image/jpeg', 'image/png', 'image/gif', 'image/webp'],
             video: ['video/mp4', 'video/avi', 'video/mov', 'video/wmv', 'video/webm']
         };
@@ -196,6 +196,8 @@ function getExtensionFromMimeType(mimeType) {
         'audio/wav': '.wav',
         'audio/ogg': '.ogg',
         'image/jpeg': '.jpg',
+        'audio/mp4':   '.m4a',     // add this
+        'audio/x-m4a': '.m4a',     // and/or this
         'image/png': '.png',
         'image/gif': '.gif',
         'image/webp': '.webp'
@@ -223,30 +225,39 @@ router.get('/exercises/:id', async (req, res) => {
 });
 
 // GET endpoint to serve video files
+// GET endpoint to serve video files
 router.get('/exercises/:id/video', async (req, res) => {
-    try {
-        const { id } = req.params;
+  try {
+    const { id } = req.params;
+    const exercise = await exerciseCrud.getExerciseById(id);
 
-        const result = await exerciseCrud.getExerciseById(id);
-
-        if (!result || !result.video_file_path) {
-            return res.status(404).json({ error: 'Video not found' });
-        }
-
-        const videoPath = path.join(__dirname, result.video_file_path);
-
-        try {
-            await fs.access(videoPath);
-            res.sendFile(path.resolve(videoPath));
-        } catch {
-            res.status(404).json({ error: 'Video file not found on filesystem' });
-        }
-
-    } catch (error) {
-        console.error('Error serving video:', error);
-        res.status(500).json({ error: 'Internal server error' });
+    if (!exercise || !exercise.video_file_path) {
+      return res.status(404).json({ error: 'Video not found' });
     }
+
+    // 1) Normalize any backslashes → forward slashes
+    // 2) Grab only the filename portion (e.g. "foo.webm")
+    const relative = exercise.video_file_path.replace(/\\/g, '/');
+    const filename = path.basename(relative);
+
+    // 3) Build the absolute path under your UPLOADS_DIR
+    //    UPLOADS_DIR is already defined as: path.join(__dirname, '../../uploads/videos')
+    const fullPath = path.join(UPLOADS_DIR, filename);
+
+    // 4) Check existence
+    await fs.promises.access(fullPath);
+
+    // 5) Stream it
+    return res.sendFile(fullPath);
+  } catch (err) {
+    console.error('Error serving video:', err);
+    if (err.code === 'ENOENT') {
+      return res.status(404).json({ error: 'Video file not found on disk.' });
+    }
+    return res.status(500).json({ error: 'Internal server error' });
+  }
 });
+
 
 // GET endpoint to serve audio files
 router.get('/exercises/:id/audio', async (req, res) => {
