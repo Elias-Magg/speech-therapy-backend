@@ -10,10 +10,11 @@ const userData = require("../models/User");
 async function createUser(user) {
     const id = uuidv4();
     await pool.query(
-        'INSERT INTO speech_therapy.user (id, type, email, name, surname) VALUES ($1, $2, $3, $4, $5)',
-        [id, user.type, user.email, user.name, user.surname]
+        'INSERT INTO speech_therapy.user (id, type, email, name, surname, year_of_birth, hashed_password) VALUES ($1, $2, $3, $4, $5, $6, $7)',
+        [id, user.type, user.email, user.name, user.surname, user.year_of_birth, user.hashed_password]
     );
-    return new User(id, user.type, user.email, user.name, user.surname, null);
+    return new User(id, user.type, user.email, user.name, user.surname, user.year_of_birth,"private password", null);
+
 }
 
 async function getUserByEmail(email) {
@@ -21,7 +22,7 @@ async function getUserByEmail(email) {
     if (userRes.rows.length === 0) return null;
     let userData = userRes.rows[0];
 
-    return new User(userData.id, userData.type, userData.email, userData.name, userData.surname, userData.clinician_id);
+    return new User(userData.id, userData.type, userData.email, userData.name, userData.surname, userData.year_of_birth, userData.hashed_password, userData.clinician_id);
 }
 
 async function getUserById(id) {
@@ -29,17 +30,21 @@ async function getUserById(id) {
     if (userRes.rows.length === 0) return null;
     let userData = userRes.rows[0];
 
-    return new User(userData.id, userData.type, userData.email, userData.name, userData.surname, userData.clinician_id);
+    return new User(userData.id, userData.type, userData.email, userData.name, userData.surname,userData.year_of_birth, "private password", userData.clinician_id);
 }
 
+
+//TODO TO UPDATE USER HAS UPDATED TABLE
 async function getUsersByClinicianId(clinician_id) {
     const userRes = await pool.query('SELECT * FROM speech_therapy.user WHERE clinician_id = $1', [clinician_id]);
     if (userRes.rows.length === 0) return null;
-    let users = userRes.rows.map(item => new User(item.id, item.type, item.email, item.name, item.surname, item.clinician_id));
+    let users = userRes.rows.map(item => new User(item.id, item.type, item.email, item.name, item.surname, item.year_of_birth, "private password", item.clinician_id));
 
     return users;
 }
 
+
+// TO UPDATE USER HAS UPDATED TABLE
 async function updateUser(user) {
     const entries = Object.entries(user)
         .filter(([key,value]) => key !== 'exerciseBundles' && value !== null && value !== undefined);

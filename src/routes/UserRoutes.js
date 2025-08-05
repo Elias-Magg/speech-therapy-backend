@@ -8,14 +8,40 @@ const router = express.Router();
 router.use(bodyParser.json());
 
 // Create user
+
+
+const bcrypt = require("bcrypt");
+const saltRounds = 10;
+
 router.post('/users', async (req, res) => {
-    try {
-        const { type, email, name, surname } = req.body;
-        const user = await userCrud.createUser(new User(null, type, email, name, surname, null));
-        res.status(201).json(user);
-    } catch (err) {
-        res.status(500).json({ error: err.message });
+  try {
+    const { type, email, password, year, name, surname } = req.body;
+
+    // 1. Check if user is already registered
+    const existingUser = await userCrud.getUserByEmail(email);
+    if (existingUser) {
+      return res.status(400).json({ message: "User already registered" });
     }
+
+    // 2. Hash the password
+    bcrypt.hash(password, saltRounds, async (err, hash) => {
+      if (err) {
+        console.error("Error hashing password:", err);
+        return res.status(500).json({ error: "Error hashing password" });
+      }
+
+      // 3. Create the user
+      const user = await userCrud.createUser(
+        new User(null, type, email, name, surname, year, hash, null)
+      );
+
+      // 4. Send back the created user
+      res.status(201).json(user);
+    });
+    
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
 });
 
 // Get user with bundles and exercises

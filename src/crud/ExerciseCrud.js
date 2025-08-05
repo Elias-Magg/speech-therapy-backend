@@ -62,9 +62,9 @@ async function updateExercise(exercise) {
     if (!exercise.id) {
         throw new Error("Exercise 'id' is required for update.");
     }
-    // Filter out null or undefined fields
+    // Filter out null or undefined fields (destructure [key, value])
     const entries = Object.entries(exercise)
-        .filter(([value]) => value !== null && value !== undefined);
+       .filter(([, value]) => value !== null && value !== undefined);
 
     if (entries.length === 0) {
         throw new Error("No valid fields provided for update.");

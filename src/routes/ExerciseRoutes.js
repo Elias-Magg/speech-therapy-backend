@@ -225,7 +225,6 @@ router.get('/exercises/:id', async (req, res) => {
 });
 
 // GET endpoint to serve video files
-// GET endpoint to serve video files
 router.get('/exercises/:id/video', async (req, res) => {
   try {
     const { id } = req.params;
