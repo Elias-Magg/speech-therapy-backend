@@ -51,6 +51,34 @@ app.use('/api', exerciseBundleRoutes);
 app.use('/api', loginRoutes); // ⬅️ mount login/logout/me
 
 // 6️⃣ Start server
-app.listen(PORT, () => {
+server = app.listen(PORT, () => {
     console.log(`Server running at http://localhost:${PORT}`);
 });
+
+// Graceful shutdown function
+const gracefulShutdown = async () => {
+    console.log('Shutting down gracefully...');
+
+    // Close database pool
+    try {
+        await pool.end();
+        console.log('Database pool closed');
+    } catch (error) {
+        console.error('Error closing database pool:', error);
+    }
+
+    // Close server if running
+    if (server) {
+        server.close(() => {
+            console.log('Server closed');
+            process.exit(0);
+        });
+    } else {
+        process.exit(0);
+    }
+};
+
+module.exports = {
+    app,
+    gracefulShutdown,
+};

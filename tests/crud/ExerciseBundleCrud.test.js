@@ -15,7 +15,7 @@ describe('Exercise Bundle CRUD operations', () => {
 
     beforeAll(async () => {
         user = await userCrud.createUser(new User(
-            null,"user","user@user.com","user","user", null
+            null,"patient","user@user.com","user","user", 2000,"hashed",null
         ))
     });
 

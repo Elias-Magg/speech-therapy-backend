@@ -44,7 +44,7 @@ router.get('/bundles/:id', async (req, res) => {
 // TODO : get whole bundles (without exercises)
 router.get('/bundles/users/:userId', async (req, res) => {
     try {
-        const bundles = await exerciseBundleCrud.getBundlesByUserId(req.params.user_id);
+        const bundles = await exerciseBundleCrud.getBundlesByUserId(req.params.userId);
         if (!bundles) return res.status(404).json({ error: 'No bundle not found' });
         res.json(bundles);
     } catch (err) {
@@ -57,6 +57,10 @@ router.put('/bundles/:id', async (req, res) => {
     try {
         const { title, global } = req.body;
         let updatedBundle = new ExerciseBundle(req.params.id, title,null, global);
+
+        let bundleExists = await exerciseBundleCrud.getBundleById(updatedBundle.id, false);
+        if (!bundleExists) return res.status(404).json({ error: 'Bundle not found' });
+
         await exerciseBundleCrud.updateExerciseBundle(updatedBundle);
         res.json({ message: 'Bundle updated' });
     } catch (err) {
@@ -67,6 +71,9 @@ router.put('/bundles/:id', async (req, res) => {
 // Delete bundle
 router.delete('/bundles/:id', async (req, res) => {
     try {
+        let bundleExists = await exerciseBundleCrud.getBundleById(req.params.id, false);
+        if (!bundleExists) return res.status(404).json({ error: 'Bundle not found' });
+
         await exerciseBundleCrud.deleteExerciseBundle(req.params.id);
         res.json({ message: 'Bundle deleted' });
     } catch (err) {

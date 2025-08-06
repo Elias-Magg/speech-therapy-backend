@@ -213,11 +213,11 @@ router.get('/exercises/:id', async (req, res) => {
 
         const result = await exerciseCrud.getExerciseById(id)
 
-        if (result.rows.length === 0) {
+        if (result === null) {
             return res.status(404).json({ error: 'Exercise not found' });
         }
 
-        res.json(result.rows[0]);
+        res.json(result);
     } catch (error) {
         console.error('Error retrieving exercise:', error);
         res.status(500).json({ error: 'Internal server error' });

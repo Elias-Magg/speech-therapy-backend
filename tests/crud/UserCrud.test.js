@@ -55,7 +55,7 @@ describe('User CRUD operations', () => {
 
     test('Create user', async () => {
         const user = await userCrud.createUser(new User(
-                null,"user","user@user.com","user","user", null
+                null,"patient","user@user.com","user","user", 2000, "hashed", null
             )
         );
 
@@ -67,13 +67,15 @@ describe('User CRUD operations', () => {
         expect(user.name).toBe("user");
         expect(user.surname).toBe("user");
         expect(user.email).toBe("user@user.com");
+        expect(user.year_of_birth).toBe(2000);
+        expect(user.hashed_password).toBe("private password");
 
         await userCrud.deleteUser(testUserId);
     });
 
     test('Get user by id', async () => {
         const user = await userCrud.createUser(new User(
-                null,"user","user@user.com","user","user", null
+                null,"patient","user@user.com","patient","user", 2000, "hashed", null
             )
         );
 
@@ -84,7 +86,7 @@ describe('User CRUD operations', () => {
         expect(user1).toBeDefined();
         expect(user1.id).toBeDefined();
         expect(user1.id).toBe(testUserId);
-        expect(user1.name).toBe("user");
+        expect(user1.name).toBe("patient");
         expect(user1.surname).toBe("user");
         expect(user1.email).toBe("user@user.com");
 
@@ -93,7 +95,7 @@ describe('User CRUD operations', () => {
 
     test('Get user by email', async () => {
         const user = await userCrud.createUser(new User(
-                null,"user","user@user.com","user","user", null
+                null,"patient","user@user.com","user","user", 2000, "hashed", null
             )
         );
 
@@ -113,12 +115,12 @@ describe('User CRUD operations', () => {
 
     test('Get users by clinician id', async () => {
         let clinician = await userCrud.createUser(new User(
-                null,"clinician","clinician@clinician.com","clinician","clinician", null
+                null,"clinician","clinician@clinician.com","clinician","clinician", 2000, "hashed", null
             )
         );
 
         let user1 = await userCrud.createUser(new User(
-                null,"user","user1@user1.com","user1","user1", null
+                null,"patient","user1@user1.com","user1","user1", 2000, "hashed", null
             )
         );
         user1.clinician_id = clinician.id;
@@ -126,7 +128,7 @@ describe('User CRUD operations', () => {
 
 
         let user2 = await userCrud.createUser(new User(
-                null,"user","user2@user2.com","user2","user2", null
+                null,"patient","user2@user2.com","user2","user2", 2000, "hashed", null
             )
         );
         user2.clinician_id = clinician.id;
@@ -161,7 +163,7 @@ describe('User CRUD operations', () => {
 
     test('Delete user', async () => {
         const user = await userCrud.createUser(new User(
-                null,"user","user@user.com","user","user", null
+                null,"patient","user@user.com","user","user", 2000, "hashed", null
             )
         );
 
@@ -175,7 +177,7 @@ describe('User CRUD operations', () => {
 
     test('Update user', async () => {
         let user = await userCrud.createUser(new User(
-                null,"user","user@user.com","user","user", null
+                null,"patient","user@user.com","user","user", 2000, "hashed", null
             )
         );
 
