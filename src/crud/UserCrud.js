@@ -5,6 +5,7 @@ const { v4: uuidv4 } = require('uuid');
 const pool = require("../config/db-connection");
 const exerciseBundleCrud = require("./ExerciseBundleCrud");
 const userData = require("../models/User");
+const notesCrud = require('../crud/ClinicianPatientNoteCrud');
 
 
 async function createUser(user) {
@@ -34,9 +35,8 @@ async function getUserById(id) {
 }
 
 
-//TODO TO UPDATE USER HAS UPDATED TABLE
 async function getUsersByClinicianId(clinician_id) {
-    const userRes = await pool.query('SELECT * FROM speech_therapy.user WHERE clinician_id = $1', [clinician_id]);
+    const userRes = await pool.query(`SELECT * FROM speech_therapy.user WHERE clinician_id = $1 AND type = 'patient' ORDER BY surname, name`, [clinician_id]);
     if (userRes.rows.length === 0) return null;
     let users = userRes.rows.map(item => new User(item.id, item.type, item.email, item.name, item.surname, item.year_of_birth, "private password", item.clinician_id));
 
@@ -44,7 +44,6 @@ async function getUsersByClinicianId(clinician_id) {
 }
 
 
-// TO UPDATE USER HAS UPDATED TABLE
 async function updateUser(user) {
     const entries = Object.entries(user)
         .filter(([key,value]) => key !== 'exerciseBundles' && value !== null && value !== undefined);
@@ -74,11 +73,55 @@ async function deleteUser(id) {
     await pool.query('DELETE FROM speech_therapy.user WHERE id = $1', [id]);
 }
 
+async function assignPatientToClinician({ name, surname, year_of_birth, clinicianId }) {
+  // Find a patient without clinician
+  const patientRes = await pool.query(
+    `SELECT * FROM speech_therapy.user 
+     WHERE type = 'patient' 
+       AND name = $1 
+       AND surname = $2 
+       AND year_of_birth = $3
+       AND clinician_id IS NULL
+     LIMIT 1`,
+    [name, surname, year_of_birth]
+  )
+
+  if (patientRes.rows.length === 0) {
+    return null // patient not found or already assigned
+  }
+
+  const patientId = patientRes.rows[0].id
+
+  await pool.query(
+    `UPDATE speech_therapy.user
+     SET clinician_id = $1
+     WHERE id = $2`,
+    [clinicianId, patientId]
+  )
+
+  // Return updated patient as User instance
+  const updated = await pool.query(`SELECT * FROM speech_therapy.user WHERE id = $1`, [patientId])
+  const p = updated.rows[0]
+  return new User(
+    p.id,
+    p.type,
+    p.email,
+    p.name,
+    p.surname,
+    p.year_of_birth,
+    'private password',
+    p.clinician_id
+  )
+}
+
+
+
 module.exports = {
     createUser,
     getUserById,
     updateUser,
     deleteUser,
     getUserByEmail,
-    getUsersByClinicianId
+    getUsersByClinicianId,
+    assignPatientToClinician
 };

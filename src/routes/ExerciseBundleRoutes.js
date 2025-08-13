@@ -146,6 +146,18 @@ router.post('/bundles/:id/clone-for-me', async (req, res) => {
   }
 });
 
+// Remove user from bundle (delete assignment)
+router.delete('/bundles/:bundleId/users/:userId', async (req, res) => {
+  try {
+    await userExerciseBundleAssociation.deleteUserExerciseBundleAssociation(
+      req.params.userId,
+      req.params.bundleId
+    );
+    res.json({ message: 'Bundle unassigned from user' });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
 
 
 

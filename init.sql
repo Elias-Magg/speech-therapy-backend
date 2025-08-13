@@ -38,3 +38,13 @@ CREATE TABLE IF NOT EXISTS speech_therapy.user_bundle (
     FOREIGN KEY (user_id) REFERENCES speech_therapy.user(id) ON DELETE CASCADE,
     FOREIGN KEY (bundle_id) REFERENCES speech_therapy.exercise_bundle(id) ON DELETE CASCADE
 );
+
+CREATE TABLE IF NOT EXISTS speech_therapy.clinician_patient_note (
+  clinician_id UUID NOT NULL
+    REFERENCES speech_therapy."user"(id) ON DELETE CASCADE,
+  patient_id   UUID NOT NULL
+    REFERENCES speech_therapy."user"(id) ON DELETE CASCADE,
+  note         TEXT NOT NULL DEFAULT '',
+  updated_at   TIMESTAMPTZ NOT NULL DEFAULT now(),
+  PRIMARY KEY (clinician_id, patient_id)
+);
