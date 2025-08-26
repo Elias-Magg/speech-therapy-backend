@@ -45,29 +45,38 @@ async function getUsersByClinicianId(clinician_id) {
 
 
 async function updateUser(user) {
-    const entries = Object.entries(user)
-        .filter(([key,value]) => key !== 'exerciseBundles' && value !== null && value !== undefined);
+  const entries = Object.entries(user)
+    .filter(([key, value]) =>
+      key !== 'exerciseBundles' &&
+      value !== null &&
+      value !== undefined &&
+      key !== 'hashed_password' // don’t overwrite password accidentally
+    );
 
-    let updatedEntry;
-
-    if (entries.length !== 0) {
-
-        const setClauses = entries.map(([key], index) => `${key} = $${index + 1}`);
-        const values = entries.map(([, value]) => value);
-
-        const query = `UPDATE speech_therapy.user
-            SET ${setClauses.join(', ')}
-            WHERE id = $${values.length + 1}
-            RETURNING *;`;
-
-        values.push(user.id);
-
-        updatedEntry = await pool.query(query, values);
-
+  // force integer for year_of_birth
+  entries.forEach(([key, value], i) => {
+    if (key === 'year_of_birth' && value !== null) {
+      entries[i][1] = parseInt(value, 10);
     }
+  });
 
-    return updatedEntry.rows[0];
+  if (entries.length === 0) return null;
+
+  const setClauses = entries.map(([key], index) => `${key} = $${index + 1}`);
+  const values = entries.map(([, value]) => value);
+
+  const query = `
+    UPDATE speech_therapy.user
+    SET ${setClauses.join(', ')}
+    WHERE id = $${values.length + 1}
+    RETURNING *;
+  `;
+
+  values.push(user.id);
+  const updatedEntry = await pool.query(query, values);
+  return updatedEntry.rows[0];
 }
+
 
 async function deleteUser(id) {
     await pool.query('DELETE FROM speech_therapy.user WHERE id = $1', [id]);
@@ -114,6 +123,20 @@ async function assignPatientToClinician({ name, surname, year_of_birth, clinicia
   )
 }
 
+async function getUserWithPassword(id) {
+  const res = await pool.query('SELECT * FROM speech_therapy.user WHERE id = $1', [id]);
+  return res.rows.length ? res.rows[0] : null;
+}
+
+async function updatePassword(id, hashed_password) {
+  await pool.query(
+    'UPDATE speech_therapy.user SET hashed_password = $1 WHERE id = $2',
+    [hashed_password, id]
+  );
+  return true;
+}
+
+
 
 
 module.exports = {
@@ -123,5 +146,7 @@ module.exports = {
     deleteUser,
     getUserByEmail,
     getUsersByClinicianId,
-    assignPatientToClinician
+    assignPatientToClinician,
+    getUserWithPassword,
+    updatePassword,
 };

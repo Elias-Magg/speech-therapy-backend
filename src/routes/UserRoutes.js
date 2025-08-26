@@ -64,14 +64,28 @@ router.get('/users/:id', async (req, res) => {
 
 // Update user
 router.put('/users/:id', async (req, res) => {
-    try {
-        const { type, email, name, surname, clinician_id} = req.body;
-        const user = await userCrud.updateUser(new User(req.params.id, type, email, name, surname, clinician_id));
-        res.status(201).json(user);
-    } catch (err) {
-        res.status(500).json({ error: err.message });
-    }
+  try {
+    const { type, email, name, surname, year_of_birth, hashed_password, clinician_id } = req.body;
+
+    const user = new User(
+      req.params.id,
+      type,
+      email,
+      name,
+      surname,
+      year_of_birth,
+      hashed_password,
+      clinician_id
+    );
+
+    const updatedUser = await userCrud.updateUser(user);
+    res.status(200).json(updatedUser);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
 });
+
+
 
 // Delete user
 router.delete('/users/:id', async (req, res) => {
@@ -212,6 +226,40 @@ router.put('/patients/:id/note', ensureAuthenticated, async (req, res) => {
   } catch (err) {
     console.error('PUT /patients/:id/note error', err);
     res.status(500).json({ error: 'Failed to save note' });
+  }
+});
+
+// Change password
+router.put('/users/:id/password', ensureAuthenticated, async (req, res) => {
+  try {
+    const { oldPassword, newPassword } = req.body;
+
+    if (!oldPassword || !newPassword) {
+      return res.status(400).json({ error: 'Missing fields' });
+    }
+
+    // Get the user from DB (with hashed_password!)
+    const user = await userCrud.getUserWithPassword(req.params.id);
+    if (!user) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+
+    // Check old password
+    const match = await bcrypt.compare(oldPassword, user.hashed_password);
+    if (!match) {
+      return res.status(400).json({ error: 'Old password is incorrect' });
+    }
+
+    // Hash new password
+    const hash = await bcrypt.hash(newPassword, saltRounds);
+
+    // Save
+    await userCrud.updatePassword(user.id, hash);
+
+    res.json({ message: 'Password updated successfully' });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Failed to update password' });
   }
 });
 
