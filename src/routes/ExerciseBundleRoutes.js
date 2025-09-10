@@ -3,6 +3,8 @@ const bodyParser = require('body-parser');
 const exerciseBundleCrud = require('../crud/ExerciseBundleCrud');
 const ExerciseBundle = require("../models/ExerciseBundle");
 const userExerciseBundleAssociation = require("../crud/UserExerciseBundleAssociationCrud");
+const userBundleLogCrud = require("../crud/UserBundleLogCrud");
+const UserBundleLog = require("../models/UserBundleLog");
 
 const router = express.Router();
 
@@ -21,8 +23,9 @@ router.post('/bundles', async (req, res) => {
 
 // Add user to bundle
 router.post('/bundles/:bundleId/users/:userId', async (req, res) => {
+    const{ notifications } = req.body;
     try {
-        await userExerciseBundleAssociation.createUserExerciseBundleAssociation(req.params.userId, req.params.bundleId);
+        await userExerciseBundleAssociation.createUserExerciseBundleAssociation(req.params.userId, req.params.bundleId, notifications);
         res.json({ message: 'Bundle assigned to user' });
     } catch (err) {
         res.status(500).json({ error: err.message });
@@ -157,6 +160,18 @@ router.delete('/bundles/:bundleId/users/:userId', async (req, res) => {
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
+});
+
+// Add user bundle log
+router.post('/log/bundles/:bundleId/users/:userId', async (req, res) => {
+    const{ state,step,timestamp } = req.body;
+    try {
+        let userBundleLog = new UserBundleLog(req.params.userId, req.params.bundleId, state, step, timestamp)
+        await userBundleLogCrud.createUserBundleLog(userBundleLog);
+        res.json({ message: 'Bundle assigned to user' });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
 });
 
 

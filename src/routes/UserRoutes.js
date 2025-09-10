@@ -18,6 +18,7 @@ router.use(bodyParser.json());
 
 
 const bcrypt = require("bcrypt");
+const exerciseBundleCrud = require("../crud/ExerciseBundleCrud");
 const saltRounds = 10;
 
 router.post('/users', async (req, res) => {
@@ -61,6 +62,49 @@ router.get('/users/:id', async (req, res) => {
         res.status(500).json({ error: err.message });
     }
 });
+
+const dayMap = ["mon", "tue", "wed", "thu", "fri", "sat", "sun"];
+
+// Utility to convert timestamp -> day string
+function getDayStringFromTimestamp(ts) {
+    const date = new Date(ts);
+    if (date.getDay() === 0)
+        return dayMap[6];
+    return dayMap[date.getDay()-1];
+}
+
+// Get weekly user notifications
+router.get('/users/notifications/:id', async (req, res) => {
+
+    try {
+        const bundles = await exerciseBundleCrud.getBundlesByUserId(req.params.id);
+        const bundleLogs = await exerciseBundleCrud.getBundleLogsByUserId(req.params.id);
+        if (!bundles) return res.status(404).json({ error: 'User not found' });
+
+        if (bundles.length === 0) return [];
+
+        let notifications = [];
+
+        for (const bundle of bundles) {
+            if (bundle.notifications.length && bundle.notifications.length > 0) {
+                let today = getDayStringFromTimestamp(new Date());
+                let currentWeekDays = dayMap.slice(0, dayMap.indexOf(today));
+                for (const day of currentWeekDays) {
+                    if(bundle.notifications.indexOf(day) !== -1 && bundleLogs.findIndex(row => row.bundle_id === bundle.id) === -1) {
+                        notifications.push(bundle.title)
+                    } else if (bundle.notifications.indexOf(day) !== -1 && bundleLogs.findIndex(row => row.bundle_id === bundle.id) !== -1) {
+                        bundleLogs.splice(bundleLogs.findIndex(row => row.bundle_id === bundle.id), 1);
+                    }
+                }
+            }
+        }
+        res.json(notifications);
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+
 
 // Update user
 router.put('/users/:id', async (req, res) => {
