@@ -88,7 +88,7 @@ router.get('/users/notifications/:id', async (req, res) => {
         for (const bundle of bundles) {
             if (bundle.notifications.length && bundle.notifications.length > 0) {
                 let today = getDayStringFromTimestamp(new Date());
-                let currentWeekDays = dayMap.slice(0, dayMap.indexOf(today));
+                let currentWeekDays = dayMap.slice(0, dayMap.indexOf(today)+1);
                 for (const day of currentWeekDays) {
                     if(bundle.notifications.indexOf(day) !== -1 && bundleLogs.findIndex(row => row.bundle_id === bundle.id) === -1) {
                         notifications.push(bundle.title)
