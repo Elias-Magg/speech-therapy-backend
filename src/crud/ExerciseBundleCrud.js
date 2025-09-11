@@ -39,7 +39,7 @@ async function getBundlesByUserId(user_id) {
     }
 
     const query = `
-    SELECT b.id, b.title, b.global
+    SELECT b.id, b.title, b.global, ub.notifications
     FROM speech_therapy.exercise_bundle b
     INNER JOIN speech_therapy.user_bundle ub ON ub.bundle_id = b.id
     WHERE ub.user_id = $1;
@@ -49,9 +49,27 @@ async function getBundlesByUserId(user_id) {
 
     if (result.rows.length === 0) return null;
 
-    let exerciseBundles = result.rows.map(row => (new ExerciseBundle(row.id, row.title, [], row.global)));
+    let exerciseBundles = result.rows.map(row => (new ExerciseBundle(row.id, row.title, [], row.global, row.notifications)));
 
     return exerciseBundles;
+}
+
+// get the weekly notifications for a user
+async function getBundleLogsByUserId(user_id) {
+    if (!user_id) {
+        throw new Error("user_id is required.");
+    }
+
+    const query = `
+    SELECT ubl,bundle_id, ubl.timestamp
+    FROM speech_therapy.user_bundle_log ubl
+    WHERE ubl.user_id = $1 AND ubl.state = 'ENDED' AND ubl.timestamp >= date_trunc('week', now())
+      AND ubl.timestamp < date_trunc('week', now()) + interval '1 week';;
+  `;
+
+    const result = await pool.query(query, [user_id]);
+
+    return result.rows;
 }
 
 async function updateExerciseBundle(exerciseBundle) {
@@ -156,6 +174,7 @@ module.exports = {
     deleteExerciseBundle,
     getGlobalExercises,
     cloneBundleForUser,
+    getBundleLogsByUserId,
 };
 
 
