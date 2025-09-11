@@ -10,7 +10,7 @@ CREATE TABLE IF NOT EXISTS speech_therapy.exercise (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     bundle_id UUID NOT NULL,
     step int NOT NULL,
-    title TEXT NOT NULL,
+    title TEXT NOT null,
     description TEXT,
     audio BYTEA,
     picture BYTEA,

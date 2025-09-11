@@ -6,6 +6,8 @@ const session = require('express-session');
 const passport = require('passport');
 require('dotenv').config();
 
+
+
 const app = express();
 const PORT = process.env.PORT || 4000;
 
@@ -43,8 +45,10 @@ app.use(express.json());
 const userRoutes = require('./routes/UserRoutes');
 const exerciseRoutes = require('./routes/ExerciseRoutes');
 const exerciseBundleRoutes = require('./routes/ExerciseBundleRoutes');
-const loginRoutes = require('./routes/LoginRoutes'); // ⬅️ new
+const loginRoutes = require('./routes/LoginRoutes'); 
+const AdminRoutes = require('./routes/AdminRoutes');
 
+app.use('/api/admin', AdminRoutes);
 app.use('/api', userRoutes);
 app.use('/api', exerciseRoutes);
 app.use('/api', exerciseBundleRoutes);
